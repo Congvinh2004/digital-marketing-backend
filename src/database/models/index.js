@@ -6,7 +6,25 @@ require('dotenv').config();
 
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require('../../config/database.json')[env];
+
+// Load config file
+let configFile;
+try {
+	configFile = require('../../config/database.js');
+} catch (error) {
+	throw new Error(`Failed to load database config file: ${error.message}`);
+}
+
+// Get config for current environment
+const config = configFile[env];
+
+if (!config) {
+	throw new Error(
+		`Database configuration not found for environment: "${env}". ` +
+		`Available environments: ${Object.keys(configFile).join(', ')}. ` +
+		`Please check NODE_ENV environment variable or ensure config file has "${env}" key.`
+	);
+}
 
 const db = {};
 
