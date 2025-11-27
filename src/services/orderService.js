@@ -104,8 +104,9 @@ let createOrder = (bodyData, userId) => {
 			}
 
 			// Kiểm tra địa chỉ giao hàng
-			const address = await db.Address.findOne({
-				where: { id: shipping_address_id, customer_id: customer.id }
+			// Tìm address theo ID trước
+			let address = await db.Address.findOne({
+				where: { id: shipping_address_id }
 			});
 
 			if (!address) {
@@ -114,6 +115,14 @@ let createOrder = (bodyData, userId) => {
 					errMessage: 'Shipping address not found'
 				});
 				return;
+			}
+
+			// Kiểm tra address có thuộc về customer này không
+			// Nếu không, cập nhật customer_id để đảm bảo address thuộc về customer đúng
+			if (address.customer_id !== customer.id) {
+				// Cập nhật customer_id của address
+				address.customer_id = customer.id;
+				await address.save();
 			}
 
 			// Validate và tính toán tổng tiền
