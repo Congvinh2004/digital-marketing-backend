@@ -12,7 +12,10 @@ const port = process.env.PORT || 8080;
 
 // 2. Cấu hình CORS (Phải đặt ĐẦU TIÊN, trước khi gọi API)
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: [
+        'http://localhost:3000',                       // Cho phép chạy dưới máy (Local)
+        'https://digital-marketing-frontend.vercel.app' // Cho phép Vercel (Viết cứng vào đây luôn!)
+    ],
     credentials: true 
 }));
 
