@@ -38,17 +38,69 @@ let createOrder = (bodyData, userId) => {
 			}
 
 			// Kiểm tra hoặc tạo customer từ user
+			// Tìm customer theo email hoặc phone (vì cả hai đều unique)
+			// Chỉ tìm theo phone nếu phone có giá trị
+			let whereCondition = { email: user.email };
+			if (user.phone && user.phone.trim() !== '') {
+				whereCondition = {
+					[Op.or]: [
+						{ email: user.email },
+						{ phone: user.phone }
+					]
+				};
+			}
+
 			let customer = await db.Customer.findOne({
-				where: { email: user.email }
+				where: whereCondition
 			});
 
 			if (!customer) {
-				customer = await db.Customer.create({
-					full_name: user.full_name || user.email,
-					email: user.email,
-					phone: user.phone,
-					status: 'active'
-				});
+				// Tạo customer mới nếu chưa tồn tại
+				try {
+					customer = await db.Customer.create({
+						full_name: user.full_name || user.email,
+						email: user.email,
+						phone: user.phone || null,
+						status: 'active'
+					});
+				} catch (error) {
+					// Nếu bị lỗi duplicate (có thể do race condition), thử tìm lại
+					if (error.name === 'SequelizeUniqueConstraintError' || error.code === 'ER_DUP_ENTRY') {
+						// Tìm lại customer sau khi bị duplicate
+						customer = await db.Customer.findOne({
+							where: whereCondition
+						});
+						
+						if (!customer) {
+							// Nếu vẫn không tìm thấy, có thể do duplicate phone hoặc email
+							// Thử tìm lại với cả hai điều kiện
+							if (user.phone && user.phone.trim() !== '') {
+								customer = await db.Customer.findOne({
+									where: {
+										[Op.or]: [
+											{ email: user.email },
+											{ phone: user.phone }
+										]
+									}
+								});
+							} else {
+								customer = await db.Customer.findOne({
+									where: { email: user.email }
+								});
+							}
+						}
+						
+						if (!customer) {
+							resolve({
+								errCode: 6,
+								errMessage: 'Failed to create customer. Email or phone already exists'
+							});
+							return;
+						}
+					} else {
+						throw error;
+					}
+				}
 			}
 
 			// Kiểm tra địa chỉ giao hàng
@@ -150,6 +202,13 @@ let createOrder = (bodyData, userId) => {
 
 					// Giảm số lượng tồn kho
 					await db.Product.decrement('quantity', {
+						by: item.quantity,
+						where: { id: item.product_id },
+						transaction
+					});
+
+					// Tăng số lượng đã bán
+					await db.Product.increment('sold_quantity', {
 						by: item.quantity,
 						where: { id: item.product_id },
 						transaction

@@ -84,7 +84,8 @@ let createProductService = (bodyData) => {
 					description: bodyData.description || '',
 					quantity: parseInt(bodyData.quantity) || 0,
 					category_id: parseInt(bodyData.category_id),
-					image: bodyData.image || ''
+					image: bodyData.image || '',
+					discount_percent: bodyData.discount_percent !== undefined ? parseFloat(bodyData.discount_percent) : 0
 				};
 
 				// Validate price
@@ -92,6 +93,15 @@ let createProductService = (bodyData) => {
 					resolve({
 						errCode: 1,
 						errMessage: 'Invalid price value'
+					});
+					return;
+				}
+
+				// Validate discount_percent
+				if (isNaN(productData.discount_percent) || productData.discount_percent < 0 || productData.discount_percent > 100) {
+					resolve({
+						errCode: 1,
+						errMessage: 'Invalid discount_percent value. Must be between 0 and 100'
 					});
 					return;
 				}
@@ -127,7 +137,8 @@ let createProductService = (bodyData) => {
 					quantity: productData.quantity,
 					category_id: productData.category_id,
 					category: category.name,
-					image: productData.image
+					image: productData.image,
+					discount_percent: productData.discount_percent
 				});
 
 				resolve({
@@ -163,6 +174,18 @@ let updateProductService = (inputId, inputData) => {
 						errMessage: 'Product not found'
 					});
 				} else {
+					// Validate discount_percent if provided
+					if (inputData.discount_percent !== undefined) {
+						const discountPercent = parseFloat(inputData.discount_percent);
+						if (isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+							resolve({
+								errCode: 1,
+								errMessage: 'Invalid discount_percent value. Must be between 0 and 100'
+							});
+							return;
+						}
+					}
+
 					// Update fields
 					if (inputData.productName) product.productName = inputData.productName;
 					if (inputData.description !== undefined) product.description = inputData.description;
@@ -171,6 +194,7 @@ let updateProductService = (inputId, inputData) => {
 					if (inputData.category) product.category = inputData.category;
 					if (inputData.category_id) product.category_id = inputData.category_id;
 					if (inputData.image) product.image = inputData.image;
+					if (inputData.discount_percent !== undefined) product.discount_percent = parseFloat(inputData.discount_percent);
 
 					await product.save();
 
@@ -297,7 +321,9 @@ let getProductByCategoryIdService = (queryParams) => {
 							'description',
 							'price',
 							'quantity',
+							'sold_quantity',
 							'image',
+							'discount_percent',
 							'category_id',
 							'createdAt',
 							'updatedAt'

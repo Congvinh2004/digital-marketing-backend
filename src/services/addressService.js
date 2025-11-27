@@ -70,17 +70,60 @@ let createAddress = (bodyData, userId) => {
 			}
 
 			// Kiểm tra hoặc tạo customer từ user
+			// Tìm customer theo email hoặc phone (vì cả hai đều unique)
+			// Chỉ tìm theo phone nếu phone có giá trị
+			let whereCondition = { email: user.email };
+			if (user.phone && user.phone.trim() !== '') {
+				whereCondition = {
+					[Op.or]: [
+						{ email: user.email },
+						{ phone: user.phone }
+					]
+				};
+			}
+
 			let customer = await db.Customer.findOne({
-				where: { email: user.email }
+				where: whereCondition
 			});
 
 			if (!customer) {
-				customer = await db.Customer.create({
-					full_name: user.full_name || user.email,
-					email: user.email,
-					phone: user.phone,
-					status: 'active'
-				});
+				// Tạo customer mới nếu chưa tồn tại
+				try {
+					customer = await db.Customer.create({
+						full_name: user.full_name || user.email,
+						email: user.email,
+						phone: user.phone || null,
+						status: 'active'
+					});
+				} catch (error) {
+					// Nếu bị lỗi duplicate (có thể do race condition), thử tìm lại
+					if (error.name === 'SequelizeUniqueConstraintError' || error.code === 'ER_DUP_ENTRY') {
+						customer = await db.Customer.findOne({
+							where: whereCondition
+						});
+						
+						if (!customer && user.phone && user.phone.trim() !== '') {
+							customer = await db.Customer.findOne({
+								where: {
+									[Op.or]: [
+										{ email: user.email },
+										{ phone: user.phone }
+									]
+								}
+							});
+						}
+						
+						if (!customer) {
+							resolve({
+								errCode: 6,
+								errMessage: 'Failed to create customer. Email or phone already exists'
+							});
+							return;
+						}
+					} else {
+						throw error;
+					}
+				}
 			}
 
 			// Nếu set is_default = true, bỏ default của các address khác

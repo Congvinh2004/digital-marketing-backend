@@ -40,6 +40,22 @@ module.exports = (sequelize, DataTypes) => {
 			field: 'image',
 			allowNull: true 
 		},
+		discount_percent: { 
+			type: DataTypes.DECIMAL(5,2), 
+			field: 'discount_percent',
+			allowNull: true,
+			defaultValue: 0,
+			get() {
+				const value = this.getDataValue('discount_percent');
+				return value ? parseFloat(value) : 0;
+			}
+		},
+		sold_quantity: { 
+			type: DataTypes.INTEGER, 
+			field: 'sold_quantity',
+			allowNull: true,
+			defaultValue: 0
+		},
 		createdAt: { 
 			type: DataTypes.DATE, 
 			field: 'createdAt',

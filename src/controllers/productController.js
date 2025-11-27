@@ -48,7 +48,8 @@ let createProduct = async (req, res) => {
 			description: req.body.description || '',
 			quantity: req.body.quantity || 0,
 			image: req.body.image || '',
-			category_id: req.body.category_id
+			category_id: req.body.category_id,
+			discount_percent: req.body.discount_percent !== undefined ? req.body.discount_percent : 0
 		}
 		let response = await productService.createProductService(data);
 		return res.status(200).json(response);
@@ -75,7 +76,8 @@ let updateProduct = async (req, res) => {
 			price: req.body.price,
 			quantity: req.body.quantity || 0,
 			category_id: req.body.category_id,
-			image: req.body.image || ''
+			image: req.body.image || '',
+			discount_percent: req.body.discount_percent
 		}
 		let response = await productService.updateProductService(req.query.id, data);
 		return res.status(200).json(response);

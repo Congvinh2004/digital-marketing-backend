@@ -2,6 +2,8 @@ const express = require('express');
 
 const mainController = require('../controllers/mainController');
 const productRoutes = require('./productRoutes');
+const categoryRoutes = require('./categoryRoutes');
+const userRoutes = require('./userRoutes');
 const authRoutes = require('./authRoutes');
 const orderRoutes = require('./orderRoutes');
 const addressRoutes = require('./addressRoutes');
@@ -19,6 +21,8 @@ const initWebRoutes = (app) => {
 	// #region - API Routes
 	app.use('/api/auth', authRoutes);
 	app.use('/api', productRoutes);
+	app.use('/api', categoryRoutes);
+	app.use('/api', userRoutes);
 	app.use('/api', orderRoutes);
 	app.use('/api', addressRoutes);
 	// #endregion
