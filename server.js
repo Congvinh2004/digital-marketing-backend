@@ -5,14 +5,21 @@ const connectDB = require('./src/config/connectDB');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 8081;
+// Code chuẩn để lấy Port
+const port = process.env.PORT || 8080;
 
-// Bootstrap app (middlewares + routes)
-bootstrapApp(app);
+// --- PHẦN BỔ SUNG QUAN TRỌNG ---
 
-// Connect database
-connectDB();
+// 1. Gọi kết nối Database
+connectDB(); 
 
-app.listen(PORT, () => {
-	console.log(`Server is listening on port: ${PORT}`);
+// 2. Cấu hình Routes/App (truyền app vào hàm bootstrap)
+bootstrapApp(app); 
+
+// ------------------------------
+
+app.listen(port, () => {
+    // Log để kiểm tra (chỉ hiện khi chạy local hoặc in ra log Railway)
+    console.log(`Railway assigned port: ${process.env.PORT || 'Local 8080'}`);
+    console.log(`Server is running on port: ${port}`);
 });
