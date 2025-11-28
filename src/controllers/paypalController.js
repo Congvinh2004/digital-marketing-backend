@@ -6,7 +6,7 @@ const db = require('../database/models');
 // Tạo PayPal order từ order ID
 let createPayPalOrder = async (req, res) => {
 	try {
-		const { orderId } = req.body;
+		const { orderId, returnUrl, cancelUrl } = req.body;
 
 		if (!orderId) {
 			return res.status(200).json({
@@ -81,7 +81,9 @@ let createPayPalOrder = async (req, res) => {
 		const orderData = {
 			total_amount: totalAmountUSD, // Dùng giá USD
 			currency: currency,
-			items: itemsWithUSD
+			items: itemsWithUSD,
+			returnUrl: returnUrl, // Nhận từ frontend (động theo domain)
+			cancelUrl: cancelUrl  // Nhận từ frontend (động theo domain)
 		};
 
 		// Tạo PayPal order
@@ -137,7 +139,8 @@ let capturePayPalOrder = async (req, res) => {
 		const paymentData = {
 			paypal_order_id: paypal_order_id,
 			paypal_transaction_id: transactionId,
-			payment_status: paymentStatus
+			payment_status: paymentStatus,
+			payment_method: req.body.payment_method || 'paypal' // Nhận từ frontend
 		};
 
 		let updateResponse = await orderService.updatePayment(orderId, paymentData);

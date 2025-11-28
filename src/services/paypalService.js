@@ -52,7 +52,7 @@ const client = () => {
 let createPayPalOrder = (orderData) => {
 	return new Promise(async (resolve, reject) => {
 		try {
-			const { total_amount, currency = 'USD', items } = orderData;
+			const { total_amount, currency = 'USD', items, returnUrl, cancelUrl } = orderData;
 
 			if (!total_amount) {
 				resolve({
@@ -90,8 +90,10 @@ let createPayPalOrder = (orderData) => {
 					brand_name: 'Digital Marketing Store',
 					landing_page: 'NO_PREFERENCE',
 					user_action: 'PAY_NOW',
-					return_url: process.env.PAYPAL_RETURN_URL || 'http://localhost:3000/payment/success',
-					cancel_url: process.env.PAYPAL_CANCEL_URL || 'http://localhost:3000/payment/cancel'
+					// Sử dụng returnUrl và cancelUrl từ request (frontend gửi)
+					// Fallback về environment variable hoặc localhost nếu không có
+					return_url: returnUrl || process.env.PAYPAL_RETURN_URL || 'http://localhost:3000/payment/success',
+					cancel_url: cancelUrl || process.env.PAYPAL_CANCEL_URL || 'http://localhost:3000/payment/cancel'
 				}
 			});
 

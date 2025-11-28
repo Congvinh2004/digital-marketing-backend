@@ -7,6 +7,8 @@ const userRoutes = require('./userRoutes');
 const authRoutes = require('./authRoutes');
 const orderRoutes = require('./orderRoutes');
 const addressRoutes = require('./addressRoutes');
+const subscribeRoutes = require('./subscribeRoutes');
+const revenueRoutes = require('./revenueRoutes');
 const verifyToken = require('../middleware/auth');
 
 const router = express.Router();
@@ -25,6 +27,8 @@ const initWebRoutes = (app) => {
 	app.use('/api', userRoutes);
 	app.use('/api', orderRoutes);
 	app.use('/api', addressRoutes);
+	app.use('/api', subscribeRoutes);
+	app.use('/api', revenueRoutes);
 	// #endregion
 
 	return app.use('/', router);

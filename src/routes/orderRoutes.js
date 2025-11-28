@@ -8,6 +8,10 @@ const verifyToken = require('../middleware/auth');
 // #region - Order Routes
 router.post('/orders/create', verifyToken, orderController.createOrder);
 router.put('/orders/:orderId/payment', orderController.updatePayment);
+router.put('/orders/:orderId/payment-status', verifyToken, orderController.updatePaymentStatus);
+router.get('/orders', verifyToken, orderController.getAllOrders);
+router.get('/orders/:orderId', verifyToken, orderController.getOrderById);
+router.put('/orders/:orderId/status', verifyToken, orderController.updateOrderStatus);
 // #endregion
 
 // #region - PayPal Routes

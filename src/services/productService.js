@@ -231,12 +231,24 @@ let deleteProductService = (inputId) => {
 						errMessage: 'Product not found'
 					});
 				} else {
-					await product.destroy();
-
-					resolve({
-						errCode: 0,
-						errMessage: 'Delete product successfully'
+					// Kiểm tra xem sản phẩm có trong đơn hàng nào không
+					const orderItemCount = await db.OrderItem.count({
+						where: { product_id: inputId }
 					});
+
+					if (orderItemCount > 0) {
+						resolve({
+							errCode: 3,
+							errMessage: `Cannot delete product. This product is in ${orderItemCount} order item(s). Please remove it from orders first or set status to inactive.`
+						});
+					} else {
+						await product.destroy();
+
+						resolve({
+							errCode: 0,
+							errMessage: 'Delete product successfully'
+						});
+					}
 				}
 			}
 		} catch (e) {
